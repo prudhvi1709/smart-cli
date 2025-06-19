@@ -1,7 +1,5 @@
 # Smart CLI
 
-> **Transform natural language into intelligent responses and code execution**
-
 Smart CLI is a powerful command-line tool that bridges the gap between human language and computational tasks. Ask questions, analyze data, or request code generation—all through simple natural language queries powered by Claude AI.
 
 ## Features
@@ -166,5 +164,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - UI components by [Rich](https://github.com/Textualize/rich)
 
 ---
-
-**Made with love for developers who think in natural language**
