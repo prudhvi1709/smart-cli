@@ -162,5 +162,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [PydanticAI](https://github.com/pydantic/pydantic-ai)
 - Powered by [Anthropic Claude](https://www.anthropic.com/)
 - UI components by [Rich](https://github.com/Textualize/rich)
-
----
