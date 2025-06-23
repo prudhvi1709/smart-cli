@@ -10,6 +10,8 @@ Smart CLI is a powerful command-line tool that bridges the gap between human lan
 - **Rich Terminal UI**: Beautiful syntax highlighting and formatted output panels
 - **Save & Export**: Save responses, code, or analysis results to files
 - **Safety First**: Secure execution environment with error handling
+- **🆕 Loop Support**: Multi-turn conversations with context gathering
+- **🆕 User Interaction**: LLM can ask for additional context when needed
 
 ## Quick Start
 
@@ -95,6 +97,22 @@ smart-cli "analyze customer_data.csv" --save analysis_report.txt
 smart-cli "create a backup script" --save backup.py --no-execute
 ```
 
+### 🆕 Interactive Context Gathering
+```bash
+# The LLM will ask for more information when needed
+smart-cli "create a chart"
+# Output: NEED_CONTEXT: I need more information to create a chart for you. Please provide:
+# 1. What type of data do you want to visualize?
+# 2. What type of chart would you prefer?
+# 3. Do you have a data file, or should I generate sample data?
+
+smart-cli "analyze the data"
+# Output: NEED_CONTEXT: I need more information to analyze data for you. Please specify:
+# 1. What data file should I analyze?
+# 2. What type of analysis do you need?
+# 3. Are there specific columns or aspects you want me to focus on?
+```
+
 ## How It Works
 
 QueryFlow uses intelligent prompt engineering to determine the best response type:
@@ -103,8 +121,11 @@ QueryFlow uses intelligent prompt engineering to determine the best response typ
 2. **Response Mode Selection**:
    - **Direct Answer**: For explanations, definitions, and conceptual questions
    - **Code Execution**: For computations, data analysis, and file operations
-3. **Safe Execution**: Runs code in isolated temporary files with timeouts
-4. **Rich Output**: Displays results with syntax highlighting and formatted panels
+   - **🆕 Need Context**: When more information is required from the user
+3. **🆕 Loop Support**: Multi-turn conversations with conversation history tracking
+4. **🆕 User Interaction**: Prompts for additional context when needed
+5. **Safe Execution**: Runs code in isolated temporary files with timeouts
+6. **Rich Output**: Displays results with syntax highlighting and formatted panels
 
 ## Configuration
 

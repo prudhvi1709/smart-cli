@@ -33,65 +33,19 @@ agent = Agent(
     RESPONSE MODES:
     1. DIRECT_ANSWER: For questions that need direct responses (explanations, facts, analysis)
     2. CODE_EXECUTION: For tasks that require code execution (calculations, file processing, data analysis)
+    3. NEED_CONTEXT: When you need more information from the user to proceed
 
     FORMAT YOUR RESPONSE:
-    Start with either "DIRECT_ANSWER:" or "CODE_EXECUTION:" followed by your response.
+    Start with either "DIRECT_ANSWER:", "CODE_EXECUTION:", or "NEED_CONTEXT:" followed by your response.
 
-    DIRECT_ANSWER Examples:
-    Query: "What is machine learning?"
-    Response: DIRECT_ANSWER: Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions from data without being explicitly programmed...
+    DIRECT_ANSWER:
+    Use this mode for questions that need direct responses, explanations, facts, or analysis. Provide clear, informative answers without code execution.
 
-    Query: "Explain the difference between lists and tuples in Python"
-    Response: DIRECT_ANSWER: Lists and tuples are both sequence types in Python, but lists are mutable (can be changed) while tuples are immutable...
+    CODE_EXECUTION:
+    Use this mode for tasks that require code execution, calculations, file processing, or data analysis. Generate clean, executable Python code that accomplishes the requested task.
 
-    CODE_EXECUTION Examples:
-    Query: "calculate fibonacci of 10"
-    Response: CODE_EXECUTION:
-    def fibonacci(n):
-        if n <= 1:
-            return n
-        return fibonacci(n-1) + fibonacci(n-2)
-    
-    result = fibonacci(10)
-    print(f"Fibonacci of 10: {result}")
-
-    Query: "how many rows in data.csv"
-    Response: CODE_EXECUTION:
-    import pandas as pd
-    import os
-    
-    if os.path.exists('data.csv'):
-        df = pd.read_csv('data.csv')
-        print(f"Number of rows in data.csv: {len(df)}")
-        print(f"Number of columns: {len(df.columns)}")
-        print(f"Columns: {list(df.columns)}")
-    else:
-        print("data.csv file not found in current directory")
-
-    Query: "preview first 5 rows of sales.json"
-    Response: CODE_EXECUTION:
-    import json
-    import pandas as pd
-    import os
-    
-    if os.path.exists('sales.json'):
-        with open('sales.json', 'r') as f:
-            data = json.load(f)
-        
-        if isinstance(data, list):
-            df = pd.DataFrame(data)
-            print("First 5 rows:")
-            print(df.head())
-        else:
-            print("JSON structure preview:")
-            for i, (key, value) in enumerate(data.items()):
-                if i < 5:
-                    print(f"{key}: {value}")
-                else:
-                    print("...")
-                    break
-    else:
-        print("sales.json file not found")
+    NEED_CONTEXT:
+    Use this mode when you need more information from the user to proceed. Ask specific, actionable questions to gather required information.
 
     GRAPH HANDLING:
     For any query related to graphs, charts, plots, or visualizations:
@@ -101,78 +55,9 @@ agent = Agent(
     - Use matplotlib, seaborn, or plotly as appropriate
     - Include proper styling and labels
 
-    Graph Examples:
-    Query: "create a bar chart of sales data"
-    Response: CODE_EXECUTION:
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    import numpy as np
-    from datetime import datetime
-    import os
-    
-    # Generate sample sales data
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-    sales = [1200, 1500, 1800, 1600, 2000, 2200]
-    
-    # Create the plot
-    plt.figure(figsize=(10, 6))
-    plt.bar(months, sales, color='skyblue', edgecolor='navy')
-    plt.title('Monthly Sales Data', fontsize=16, fontweight='bold')
-    plt.xlabel('Month', fontsize=12)
-    plt.ylabel('Sales ($)', fontsize=12)
-    plt.grid(axis='y', alpha=0.3)
-    
-    # Add value labels on bars
-    for i, v in enumerate(sales):
-        plt.text(i, v + 50, str(v), ha='center', va='bottom', fontweight='bold')
-    
-    # Save the graph
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"sales_chart_{timestamp}.png"
-    plt.savefig(filename, dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    print(f"Graph saved as: {os.path.abspath(filename)}")
-    print(f"File size: {os.path.getsize(filename)} bytes")
-
-    Query: "plot a line graph of temperature over time"
-    Response: CODE_EXECUTION:
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from datetime import datetime, timedelta
-    import os
-    
-    # Generate sample temperature data
-    dates = [datetime.now() - timedelta(days=i) for i in range(7, 0, -1)]
-    temperatures = [22, 24, 26, 23, 25, 27, 28]
-    
-    # Create the plot
-    plt.figure(figsize=(12, 6))
-    plt.plot(dates, temperatures, marker='o', linewidth=2, markersize=8, color='red')
-    plt.title('Temperature Over Time', fontsize=16, fontweight='bold')
-    plt.xlabel('Date', fontsize=12)
-    plt.ylabel('Temperature (°C)', fontsize=12)
-    plt.grid(True, alpha=0.3)
-    plt.xticks(rotation=45)
-    
-    # Add temperature labels
-    for i, temp in enumerate(temperatures):
-        plt.annotate(f'{temp}°C', (dates[i], temp), textcoords="offset points", 
-                    xytext=(0,10), ha='center')
-    
-    plt.tight_layout()
-    
-    # Save the graph
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"temperature_graph_{timestamp}.png"
-    plt.savefig(filename, dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    print(f"Graph saved as: {os.path.abspath(filename)}")
-    print(f"File size: {os.path.getsize(filename)} bytes")
-
     RULES:
     - For CODE_EXECUTION: Generate clean, executable Python code
+    - DO NOT include markdown formatting (```python or ```) in CODE_EXECUTION responses
     - Include proper error handling for file operations
     - Use pandas for CSV/Excel files, json for JSON files
     - For file analysis, check if file exists first
@@ -181,7 +66,10 @@ agent = Agent(
     - For GRAPHS: Always save to file and show the absolute path
     - Use descriptive filenames with timestamps for graphs
     - Include proper styling, labels, and legends for visualizations
-    """
+    - For NEED_CONTEXT: Ask specific, actionable questions to gather required information
+    - Be concise but thorough in context requests
+    """,
+    end_strategy='loop'  # Enable loop support for multi-turn conversations
 )
 
 def is_graph_query(query: str) -> bool:
@@ -252,73 +140,127 @@ async def process_query(query_text: str, execute: bool, save: str, show_code: bo
     
     console.print("[yellow]Processing...[/yellow]")
     
+    # Initialize conversation history for loop support
+    conversation_history = []
+    current_query = query_text
+    
     try:
-        result = await agent.run(query_text)
-        response = result.output.strip()
-        
-        # Clean up markdown formatting if present
-        if response.startswith('```python'):
-            response = response.replace('```python', '', 1)
-        if response.startswith('```'):
-            response = response.replace('```', '', 1)
-        if response.endswith('```'):
-            response = response.rsplit('```', 1)[0]
-        
-        response = response.strip()
-        
-        # Check if it's a direct answer or code execution
-        if response.startswith('DIRECT_ANSWER:'):
-            # Handle direct answer
-            answer = response.replace('DIRECT_ANSWER:', '', 1).strip()
-            console.print(Panel(answer, title="Answer", border_style="blue"))
+        while True:
+            # Add current query to history
+            conversation_history.append({"role": "user", "content": current_query})
             
-            if save:
-                save_path = Path(save)
-                save_path.write_text(answer)
-                console.print(f"[green]Answer saved to {save_path}[/green]")
+            # Run agent with conversation history
+            result = await agent.run(current_query, history=conversation_history)
+            response = result.output.strip()
+            
+            # Clean up markdown formatting if present
+            if response.startswith('```python'):
+                response = response.replace('```python', '', 1)
+            if response.startswith('```'):
+                response = response.replace('```', '', 1)
+            if response.endswith('```'):
+                response = response.rsplit('```', 1)[0]
+            
+            response = response.strip()
+            
+            # Add agent response to history
+            conversation_history.append({"role": "assistant", "content": response})
+            
+            # Check if it's a direct answer or code execution
+            if response.startswith('DIRECT_ANSWER:'):
+                # Handle direct answer
+                answer = response.replace('DIRECT_ANSWER:', '', 1).strip()
+                console.print(Panel(answer, title="Answer", border_style="blue"))
                 
-        elif response.startswith('CODE_EXECUTION:'):
-            # Handle code execution
-            code = response.replace('CODE_EXECUTION:', '', 1).strip()
-            
-            if show_code:
-                syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
-                console.print(Panel(syntax, title="Generated Code", border_style="green"))
-            
-            if save:
-                save_path = Path(save)
-                save_path.write_text(code)
-                console.print(f"[green]Code saved to {save_path}[/green]")
+                if save:
+                    save_path = Path(save)
+                    save_path.write_text(answer)
+                    console.print(f"[green]Answer saved to {save_path}[/green]")
                 
-                if is_graph:
-                    console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
-            
-            if execute:
-                if is_graph:
-                    console.print("[yellow]🎨 Generating graph...[/yellow]")
-                else:
-                    console.print("[yellow]Executing code...[/yellow]")
-                await execute_code(code)
-        else:
-            # Fallback: treat as code if no prefix
-            if show_code:
-                syntax = Syntax(response, "python", theme="monokai", line_numbers=True)
-                console.print(Panel(syntax, title="Generated Code", border_style="green"))
-            
-            if save:
-                save_path = Path(save)
-                save_path.write_text(response)
-                console.print(f"[green]Content saved to {save_path}[/green]")
+                # Exit loop for direct answers
+                break
+                    
+            elif response.startswith('CODE_EXECUTION:'):
+                # Handle code execution
+                code = response.replace('CODE_EXECUTION:', '', 1).strip()
                 
-                if is_graph:
-                    console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
-            
-            if execute:
-                if is_graph:
-                    console.print("[yellow]🎨 Generating graph...[/yellow]")
-                else:
-                    console.print("[yellow]Executing...[/yellow]")
-                await execute_code(response)
+                # Additional cleanup for code blocks
+                if code.startswith('```python'):
+                    code = code.replace('```python', '', 1)
+                if code.startswith('```'):
+                    code = code.replace('```', '', 1)
+                if code.endswith('```'):
+                    code = code.rsplit('```', 1)[0]
+                code = code.strip()
+                
+                if show_code:
+                    syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
+                    console.print(Panel(syntax, title="Generated Code", border_style="green"))
+                
+                if save:
+                    save_path = Path(save)
+                    save_path.write_text(code)
+                    console.print(f"[green]Code saved to {save_path}[/green]")
+                    
+                    if is_graph:
+                        console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
+                
+                if execute:
+                    if is_graph:
+                        console.print("[yellow]🎨 Generating graph...[/yellow]")
+                    else:
+                        console.print("[yellow]Executing code...[/yellow]")
+                    await execute_code(code)
+                
+                # Exit loop for code execution
+                break
+                
+            elif response.startswith('NEED_CONTEXT:'):
+                # Handle need for context
+                context_request = response.replace('NEED_CONTEXT:', '', 1).strip()
+                console.print(Panel(context_request, title="Context Request", border_style="yellow"))
+                
+                if save:
+                    save_path = Path(save)
+                    save_path.write_text(context_request)
+                    console.print(f"[green]Context request saved to {save_path}[/green]")
+                
+                # Get user input for context
+                console.print("\n[cyan]Please provide the requested information:[/cyan]")
+                user_context = input("> ").strip()
+                
+                if not user_context:
+                    console.print("[red]No context provided. Exiting.[/red]")
+                    break
+                
+                # Continue loop with user's context
+                current_query = f"Context provided: {user_context}. Original query: {query_text}"
+                console.print(f"[blue]Continuing with context: {user_context}[/blue]")
+                continue
+                
+            else:
+                # Fallback: treat as code if no prefix
+                if show_code:
+                    syntax = Syntax(response, "python", theme="monokai", line_numbers=True)
+                    console.print(Panel(syntax, title="Generated Code", border_style="green"))
+                
+                if save:
+                    save_path = Path(save)
+                    save_path.write_text(response)
+                    console.print(f"[green]Content saved to {save_path}[/green]")
+                    
+                    if is_graph:
+                        console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
+                
+                if execute:
+                    if is_graph:
+                        console.print("[yellow]🎨 Generating graph...[/yellow]")
+                    else:
+                        console.print("[yellow]Executing...[/yellow]")
+                    await execute_code(response)
+                
+                # Exit loop for fallback responses
+                break
     
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
