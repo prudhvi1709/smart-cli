@@ -1,10 +1,11 @@
 # Smart CLI
 
-Smart CLI is a powerful command-line tool that bridges the gap between human language and computational tasks. Ask questions, analyze data, or request code generation—all through simple natural language queries powered by Claude AI.
+Smart CLI is a powerful command-line tool that bridges the gap between human language and computational tasks. Ask questions, analyze data, or request code generation—all through simple natural language queries powered by Claude AI or OpenAI GPT.
 
 ## Features
 
 - **Dual Intelligence**: Provides direct answers OR generates executable code based on query context
+- **Multi-Provider Support**: Works with both Anthropic Claude and OpenAI GPT models
 - **Smart File Analysis**: Automatically handles CSV, JSON, Excel files with statistical insights
 - **Instant Execution**: Runs generated code safely with built-in timeouts and sandboxing
 - **Rich Terminal UI**: Beautiful syntax highlighting and formatted output panels
@@ -17,7 +18,7 @@ Smart CLI is a powerful command-line tool that bridges the gap between human lan
 
 ### Prerequisites
 - Python 3.12+
-- Anthropic API key
+- Anthropic API key OR OpenAI API key
 
 ### Installation
 
@@ -29,8 +30,10 @@ cd smart-cli
 # Install the package
 pip install -e .
 
-# Set your API key
-export ANTHROPIC_API_KEY="your-api-key-here"
+# Set your API key (choose one)
+export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+# OR
+export OPENAI_API_KEY="your-openai-api-key-here"
 
 # Run the CLI
 smart-cli "your query here"
@@ -49,7 +52,22 @@ smart-cli "your natural language query" [OPTIONS]
 - `--execute/--no-execute` (`-e/-n`): Execute generated code (default: true)
 - `--save FILENAME` (`-s`): Save output to file
 - `--show-code/--no-show-code`: Display code before execution (default: true)
+- `--model MODEL` (`-m`): Specify AI model to use
 - `--help`: Show help message
+
+### Model Selection
+You can specify which AI model to use:
+
+```bash
+# Use specific models
+smart-cli "your query" --model anthropic:claude-sonnet-4-0
+smart-cli "your query" --model openai:gpt-4.1-mini
+smart-cli "your query" --model openai:gpt-4o-mini
+
+# The system will automatically choose based on available API keys:
+# - If OPENAI_API_KEY is set: uses openai:gpt-4.1-mini
+# - If ANTHROPIC_API_KEY is set: uses anthropic:claude-sonnet-4-0
+```
 
 ## Examples
 
@@ -131,12 +149,25 @@ QueryFlow uses intelligent prompt engineering to determine the best response typ
 
 ### Environment Variables
 ```bash
-# Required: Anthropic API key
-export ANTHROPIC_API_KEY="your-api-key-here"
+# Required: Set one of these API keys
+export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+# OR
+export OPENAI_API_KEY="your-openai-api-key-here"
 
-# Optional: Custom model (default: claude-sonnet-4-0)
+# Optional: Custom model selection
 export ANTHROPIC_MODEL="claude-3-haiku-20240307"
 ```
+
+### Supported Models
+- **Anthropic Claude**: `anthropic:claude-sonnet-4-0`, `anthropic:claude-3-haiku-20240307`, `anthropic:claude-3-opus-20240229`
+- **OpenAI GPT**: `openai:gpt-4.1-mini`, `openai:gpt-4o-mini`, `openai:gpt-4o`, `openai:gpt-3.5-turbo`
+
+### Model Selection Priority
+1. Command line `--model` option (highest priority)
+2. Environment variable `ANTHROPIC_MODEL` (if Anthropic API key is set)
+3. Automatic detection based on available API keys:
+   - `openai:gpt-4.1-mini` if `OPENAI_API_KEY` is set
+   - `anthropic:claude-sonnet-4-0` if `ANTHROPIC_API_KEY` is set
 
 ### Supported File Formats
 - **CSV**: Full pandas integration for data analysis
@@ -181,5 +212,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Built with [PydanticAI](https://github.com/pydantic/pydantic-ai)
-- Powered by [Anthropic Claude](https://www.anthropic.com/)
+- Powered by [Anthropic Claude](https://www.anthropic.com/) and [OpenAI GPT](https://openai.com/)
 - UI components by [Rich](https://github.com/Textualize/rich)
