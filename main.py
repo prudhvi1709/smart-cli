@@ -20,212 +20,140 @@ from rich.console import Console
 from rich.syntax import Syntax
 from rich.panel import Panel
 from pydantic_ai import Agent
-from datetime import datetime
-import re
 
 console = Console()
 
-agent = Agent(
-    'anthropic:claude-sonnet-4-0',
-    instructions="""
-    You are an intelligent assistant that can handle various types of queries. Analyze the user's request and respond appropriately:
-
-    RESPONSE MODES:
-    1. DIRECT_ANSWER: For questions that need direct responses (explanations, facts, analysis)
-    2. CODE_EXECUTION: For tasks that require code execution (calculations, file processing, data analysis)
-    3. NEED_CONTEXT: When you need more information from the user to proceed
-
-    FORMAT YOUR RESPONSE:
-    Start with either "DIRECT_ANSWER:", "CODE_EXECUTION:", or "NEED_CONTEXT:" followed by your response.
-
-    DIRECT_ANSWER:
-    Use this mode for questions that need direct responses, explanations, facts, or analysis. Provide clear, informative answers without code execution.
-
-    CODE_EXECUTION:
-    Use this mode for tasks that require code execution, calculations, file processing, or data analysis. Generate clean, executable Python code that accomplishes the requested task.
-
-    NEED_CONTEXT:
-    Use this mode when you need more information from the user to proceed. Ask specific, actionable questions to gather required information.
-
-    GRAPH HANDLING:
-    For any query related to graphs, charts, plots, or visualizations:
-    - ALWAYS save the graph to a file
-    - Use descriptive filenames with timestamps
-    - Show the file path in the output
-    - Use matplotlib, seaborn, or plotly as appropriate
-    - Include proper styling and labels
-
-    RULES:
-    - For CODE_EXECUTION: Generate clean, executable Python code
-    - DO NOT include markdown formatting (```python or ```) in CODE_EXECUTION responses
-    - Include proper error handling for file operations
-    - Use pandas for CSV/Excel files, json for JSON files
-    - For file analysis, check if file exists first
-    - Always use print() to show results
-    - Keep code focused and minimal
-    - For GRAPHS: Always save to file and show the absolute path
-    - Use descriptive filenames with timestamps for graphs
-    - Include proper styling, labels, and legends for visualizations
-    - For NEED_CONTEXT: Ask specific, actionable questions to gather required information
-    - Be concise but thorough in context requests
-    """,
-    end_strategy='loop'  # Enable loop support for multi-turn conversations
-)
-
-def is_graph_query(query: str) -> bool:
-    """Detect if the query is related to graphs, charts, or visualizations."""
-    graph_keywords = [
-        'graph', 'chart', 'plot', 'visualization', 'visualize', 'visualise',
-        'bar chart', 'line graph', 'scatter plot', 'histogram', 'pie chart',
-        'heatmap', 'box plot', 'violin plot', 'area chart', 'bubble chart',
-        'create graph', 'make chart', 'draw plot', 'generate visualization',
-        'plot data', 'chart data', 'graph data'
-    ]
+def get_agent(model: str = None):
+    """Create agent with specified model or default."""
+    if not model:
+        # Check if OpenAI API key is set
+        if os.getenv('OPENAI_API_KEY'):
+            model = 'openai:gpt-4.1-mini'
+        else:
+            model = os.getenv('ANTHROPIC_MODEL', 'anthropic:claude-sonnet-4-0')
     
-    query_lower = query.lower()
-    return any(keyword in query_lower for keyword in graph_keywords)
+    return Agent(
+        model,
+        instructions="""
+        You are an intelligent assistant that handles queries in three modes. You MUST respond in exactly one of these formats:
 
-def generate_graph_filename(query: str) -> str:
-    """Generate a descriptive filename for graph files."""
-    # Extract meaningful words from query
-    words = re.findall(r'\b[a-zA-Z]{3,}\b', query.lower())
-    # Filter out common words
-    common_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will', 'just', 'should', 'now', 'create', 'make', 'draw', 'generate', 'show', 'display', 'data'}
-    meaningful_words = [word for word in words if word not in common_words]
-    
-    # Take first 3 meaningful words or use 'graph' as fallback
-    if meaningful_words:
-        base_name = '_'.join(meaningful_words[:3])
-    else:
-        base_name = 'graph'
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"{base_name}_{timestamp}.py"
+        FORMAT 1 - DIRECT_ANSWER: [Your explanation or answer here]
+        FORMAT 2 - CODE_EXECUTION: [Your Python code here]
+        FORMAT 3 - NEED_CONTEXT: [Your question for more information here]
+
+        RULES:
+        - ALWAYS start with the mode followed by a colon and space
+        - For CODE_EXECUTION: Generate clean, executable Python code
+        - For DIRECT_ANSWER: Provide explanations, facts, or analysis
+        - For NEED_CONTEXT: Ask specific questions when you need more information
+        - For graphs/charts: Always save to file with descriptive names and timestamps
+        - Use pandas for CSV/Excel, json for JSON files, matplotlib/seaborn/plotly for graphs
+        - Always use print() to show results and include proper error handling
+        - DO NOT include markdown formatting (```python or ```) in CODE_EXECUTION responses
+        """,
+        end_strategy='loop'
+    )
+
+def clean_markdown(text: str) -> str:
+    """Remove markdown formatting from text."""
+    text = text.strip()
+    if text.startswith('```python'):
+        text = text.replace('```python', '', 1)
+    if text.startswith('```'):
+        text = text.replace('```', '', 1)
+    if text.endswith('```'):
+        text = text.rsplit('```', 1)[0]
+    return text.strip()
+
+def save_content(content: str, save_path: str, content_type: str = "Content"):
+    """Save content to file and show confirmation."""
+    if save_path:
+        Path(save_path).write_text(content)
+        console.print(f"[green]{content_type} saved to {save_path}[/green]")
+
+def display_code(code: str, show_code: bool):
+    """Display code with syntax highlighting if enabled."""
+    if show_code:
+        syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
+        console.print(Panel(syntax, title="Generated Code", border_style="green"))
 
 @click.command()
 @click.argument('query', nargs=-1, required=True)
 @click.option('--execute/--no-execute', '-e/-n', default=True, help='Execute the generated code')
 @click.option('--save', '-s', help='Save generated code to file')
 @click.option('--show-code/--no-show-code', default=True, help='Show generated code before execution')
-def main(query, execute, save, show_code):
-    """
-    Smart CLI: Generate and execute Python code from natural language queries.
-    
-    Examples:
-    smart-cli "calculate the sum of first 10 prime numbers"
-    smart-cli "create a simple web scraper for quotes" --no-execute
-    smart-cli "generate random password of length 12" --save password_gen.py
-    smart-cli "create a bar chart of sales data"  # Automatically saves graph
-    """
+@click.option('--model', '-m', help='AI model to use (e.g., anthropic:claude-sonnet-4-0, openai:gpt-4.1-mini)')
+def main(query, execute, save, show_code, model):
+    """Smart CLI: Generate and execute Python code from natural language queries."""
     query_text = ' '.join(query)
-    
     if not query_text.strip():
         console.print("[red]Error: Please provide a query[/red]")
         sys.exit(1)
     
-    # Auto-detect graph queries and set save path if not provided
-    if is_graph_query(query_text) and not save:
-        save = generate_graph_filename(query_text)
-        console.print(f"[blue]Graph query detected! Will save to: {save}[/blue]")
+    # Show model being used
+    if model:
+        console.print(f"[cyan]Using model: {model}[/cyan]")
+    elif os.getenv('OPENAI_API_KEY'):
+        console.print(f"[cyan]Using model: openai:gpt-4.1-mini (OpenAI API key detected)[/cyan]")
+    elif os.getenv('ANTHROPIC_MODEL'):
+        console.print(f"[cyan]Using model: {os.getenv('ANTHROPIC_MODEL')}[/cyan]")
     
-    asyncio.run(process_query(query_text, execute, save, show_code))
+    asyncio.run(process_query(query_text, execute, save, show_code, model))
 
-async def process_query(query_text: str, execute: bool, save: str, show_code: bool):
+async def process_query(query_text: str, execute: bool, save: str, show_code: bool, model: str = None):
     console.print(f"[blue]Query:[/blue] {query_text}")
-    
-    # Special handling for graph queries
-    is_graph = is_graph_query(query_text)
-    if is_graph:
-        console.print("[cyan]📊 Graph/Visualization query detected[/cyan]")
-    
     console.print("[yellow]Processing...[/yellow]")
     
-    # Initialize conversation history for loop support
+    # Create agent with specified model
+    agent = get_agent(model)
+    
     conversation_history = []
     current_query = query_text
     
     try:
         while True:
-            # Add current query to history
             conversation_history.append({"role": "user", "content": current_query})
-            
-            # Run agent with conversation history
             result = await agent.run(current_query, history=conversation_history)
-            response = result.output.strip()
-            
-            # Clean up markdown formatting if present
-            if response.startswith('```python'):
-                response = response.replace('```python', '', 1)
-            if response.startswith('```'):
-                response = response.replace('```', '', 1)
-            if response.endswith('```'):
-                response = response.rsplit('```', 1)[0]
-            
-            response = response.strip()
-            
-            # Add agent response to history
+            response = clean_markdown(result.output)
             conversation_history.append({"role": "assistant", "content": response})
             
-            # Check if it's a direct answer or code execution
+            # Check for malformed responses
+            if response.strip() in ['CODE_EXECUTION', 'DIRECT_ANSWER', 'NEED_CONTEXT']:
+                console.print(f"[red]Error: Malformed response from AI. Got '{response}' without content.[/red]")
+                console.print("[yellow]Retrying with clearer instructions...[/yellow]")
+                current_query = f"Please provide a complete response. Original query: {query_text}"
+                continue
+            
             if response.startswith('DIRECT_ANSWER:'):
-                # Handle direct answer
                 answer = response.replace('DIRECT_ANSWER:', '', 1).strip()
+                if not answer:
+                    console.print("[red]Error: Empty DIRECT_ANSWER response[/red]")
+                    break
                 console.print(Panel(answer, title="Answer", border_style="blue"))
-                
-                if save:
-                    save_path = Path(save)
-                    save_path.write_text(answer)
-                    console.print(f"[green]Answer saved to {save_path}[/green]")
-                
-                # Exit loop for direct answers
+                save_content(answer, save, "Answer")
                 break
                     
             elif response.startswith('CODE_EXECUTION:'):
-                # Handle code execution
-                code = response.replace('CODE_EXECUTION:', '', 1).strip()
-                
-                # Additional cleanup for code blocks
-                if code.startswith('```python'):
-                    code = code.replace('```python', '', 1)
-                if code.startswith('```'):
-                    code = code.replace('```', '', 1)
-                if code.endswith('```'):
-                    code = code.rsplit('```', 1)[0]
-                code = code.strip()
-                
-                if show_code:
-                    syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
-                    console.print(Panel(syntax, title="Generated Code", border_style="green"))
-                
-                if save:
-                    save_path = Path(save)
-                    save_path.write_text(code)
-                    console.print(f"[green]Code saved to {save_path}[/green]")
-                    
-                    if is_graph:
-                        console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
+                code = clean_markdown(response.replace('CODE_EXECUTION:', '', 1))
+                if not code:
+                    console.print("[red]Error: Empty CODE_EXECUTION response[/red]")
+                    break
+                display_code(code, show_code)
+                save_content(code, save, "Code")
                 
                 if execute:
-                    if is_graph:
-                        console.print("[yellow]🎨 Generating graph...[/yellow]")
-                    else:
-                        console.print("[yellow]Executing code...[/yellow]")
+                    console.print("[yellow]Executing code...[/yellow]")
                     await execute_code(code)
-                
-                # Exit loop for code execution
                 break
                 
             elif response.startswith('NEED_CONTEXT:'):
-                # Handle need for context
                 context_request = response.replace('NEED_CONTEXT:', '', 1).strip()
+                if not context_request:
+                    console.print("[red]Error: Empty NEED_CONTEXT response[/red]")
+                    break
                 console.print(Panel(context_request, title="Context Request", border_style="yellow"))
+                save_content(context_request, save, "Context request")
                 
-                if save:
-                    save_path = Path(save)
-                    save_path.write_text(context_request)
-                    console.print(f"[green]Context request saved to {save_path}[/green]")
-                
-                # Get user input for context
                 console.print("\n[cyan]Please provide the requested information:[/cyan]")
                 user_context = input("> ").strip()
                 
@@ -233,33 +161,18 @@ async def process_query(query_text: str, execute: bool, save: str, show_code: bo
                     console.print("[red]No context provided. Exiting.[/red]")
                     break
                 
-                # Continue loop with user's context
                 current_query = f"Context provided: {user_context}. Original query: {query_text}"
                 console.print(f"[blue]Continuing with context: {user_context}[/blue]")
                 continue
                 
             else:
-                # Fallback: treat as code if no prefix
-                if show_code:
-                    syntax = Syntax(response, "python", theme="monokai", line_numbers=True)
-                    console.print(Panel(syntax, title="Generated Code", border_style="green"))
-                
-                if save:
-                    save_path = Path(save)
-                    save_path.write_text(response)
-                    console.print(f"[green]Content saved to {save_path}[/green]")
-                    
-                    if is_graph:
-                        console.print(f"[cyan]📁 Graph code saved to: {save_path.absolute()}[/cyan]")
+                # Fallback: treat as code
+                display_code(response, show_code)
+                save_content(response, save, "Content")
                 
                 if execute:
-                    if is_graph:
-                        console.print("[yellow]🎨 Generating graph...[/yellow]")
-                    else:
-                        console.print("[yellow]Executing...[/yellow]")
+                    console.print("[yellow]Executing...[/yellow]")
                     await execute_code(response)
-                
-                # Exit loop for fallback responses
                 break
     
     except Exception as e:
@@ -282,11 +195,7 @@ async def execute_code(code: str):
         console.print("[green]--- Output ---[/green]")
         if result.stdout:
             console.print(result.stdout)
-            
-            # Check if graph was saved and show path
-            if "Graph saved as:" in result.stdout:
-                console.print("[cyan]🎉 Graph generated successfully![/cyan]")
-            elif "saved as:" in result.stdout.lower() or "saved to:" in result.stdout.lower():
+            if any(phrase in result.stdout.lower() for phrase in ["saved as:", "saved to:", "graph saved"]):
                 console.print("[cyan]💾 File saved successfully![/cyan]")
         
         if result.stderr:
