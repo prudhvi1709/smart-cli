@@ -113,7 +113,7 @@ async def process_query(query_text: str, execute: bool, save: str, show_code: bo
     try:
         while True:
             conversation_history.append({"role": "user", "content": current_query})
-            result = await agent.run(current_query, history=conversation_history)
+            result = await agent.run(current_query)
             response = clean_markdown(result.output)
             conversation_history.append({"role": "assistant", "content": response})
             
