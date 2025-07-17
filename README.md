@@ -27,6 +27,24 @@ Smart CLI is a powerful command-line tool that bridges the gap between human lan
 
 ### Installation
 
+**Option 1: Using uvx (Recommended - No installation required)**
+```bash
+# Set your API key first (choose one)
+export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+# OR
+export OPENAI_API_KEY="your-openai-api-key-here"
+
+# Run directly with uvx - no installation needed!
+uvx git+https://github.com/prudhvi1709/smart-cli "What is machine learning?"
+
+# Interactive mode with web automation
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+
+# Data analysis example
+uvx git+https://github.com/prudhvi1709/smart-cli "analyze my sales_data.csv and create visualizations"
+```
+
+**Option 2: Traditional Installation**
 ```bash
 # Clone the repository
 git clone https://github.com/prudhvi1709/smart-cli.git
@@ -53,6 +71,50 @@ smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright
 ```bash
 smart-cli "your natural language query" [OPTIONS]
 smart-cli [OPTIONS]  # Starts interactive mode if no query provided
+
+# Or using uvx (no installation required)
+uvx git+https://github.com/prudhvi1709/smart-cli "your natural language query" [OPTIONS]
+```
+
+### 🚀 Quick Start with uvx (No Installation Required)
+
+**Try these examples immediately without installing anything:**
+
+```bash
+# Set your API key first (choose one)
+export OPENAI_API_KEY="your-openai-api-key-here"
+# OR
+export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+
+# 1. Ask questions and get instant answers
+uvx git+https://github.com/prudhvi1709/smart-cli "What is the difference between Python and JavaScript?"
+
+# 2. Generate and run code
+uvx git+https://github.com/prudhvi1709/smart-cli "create a password generator with 16 characters"
+
+# 3. Data analysis (place your CSV file in current directory first)
+uvx git+https://github.com/prudhvi1709/smart-cli "analyze my data.csv and show me statistical summary"
+
+# 4. Mathematical computations
+uvx git+https://github.com/prudhvi1709/smart-cli "calculate compound interest for $5000 at 7% for 10 years"
+
+# 5. Interactive mode for conversations
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive
+
+# 6. Web automation (requires Node.js)
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+
+# 7. File operations
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
+
+# 8. Save generated code to file
+uvx git+https://github.com/prudhvi1709/smart-cli "create a QR code generator" --save qr_generator.py
+
+# 9. Code without execution (just show the code)
+uvx git+https://github.com/prudhvi1709/smart-cli "create a web scraper for news headlines" --no-execute
+
+# 10. Use specific AI model
+uvx git+https://github.com/prudhvi1709/smart-cli "explain quantum computing" --model openai:gpt-4o
 ```
 
 ### Options
@@ -209,6 +271,32 @@ smart-cli "your query" --model openai:gpt-4o-mini
 ```
 
 ## Examples
+
+### 🚀 uvx Quick Examples (Try Now!)
+
+**No installation required - just run these commands:**
+
+```bash
+# Set your API key first
+export OPENAI_API_KEY="your-key-here"  # or ANTHROPIC_API_KEY
+
+# Quick Q&A
+uvx git+https://github.com/prudhvi1709/smart-cli "What is Docker and why should I use it?"
+
+# Code generation
+uvx git+https://github.com/prudhvi1709/smart-cli "create a Python function to validate email addresses"
+
+# Data analysis (put your CSV file in current directory first)
+uvx git+https://github.com/prudhvi1709/smart-cli "do full EDA on my sales.csv and create visualizations"
+
+# Web automation - take a screenshot
+uvx git+https://github.com/prudhvi1709/smart-cli "take a screenshot of python.org" --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+
+# Interactive data exploration
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
+# Then: > "analyze all CSV files in this directory"
+# Then: > "create a summary report of the findings"
+```
 
 ### 🆕 Web Automation & Browser Control
 ```bash
@@ -476,11 +564,27 @@ loadenv  # or your custom environment loading command
 
 **Interactive Mode Not Working:**
 ```bash
-# Make sure you have the latest version
+# With uvx (always gets latest version)
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive
+
+# With traditional installation - make sure you have the latest version
 pip install -e .
 
 # Start with explicit interactive flag
 smart-cli --interactive
+```
+
+**Testing uvx Installation:**
+```bash
+# Test basic functionality
+uvx git+https://github.com/prudhvi1709/smart-cli "What is 2+2?"
+
+# Test with your API key
+export OPENAI_API_KEY="your-key-here"
+uvx git+https://github.com/prudhvi1709/smart-cli "create a simple hello world program"
+
+# Test interactive mode
+uvx git+https://github.com/prudhvi1709/smart-cli --interactive
 ```
 
 ## Contributing
