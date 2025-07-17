@@ -16,6 +16,7 @@ Smart CLI is a powerful command-line tool that bridges the gap between human lan
 - **Safety First**: Secure execution environment with error handling
 - **Loop Support**: Multi-turn conversations with context gathering
 - **User Interaction**: LLM can ask for additional context when needed
+- **Clean Architecture**: Professionally designed codebase with robust error handling
 
 ## Quick Start
 
@@ -43,7 +44,7 @@ export OPENAI_API_KEY="your-openai-api-key-here"
 smart-cli "your query here"
 
 # Interactive mode with web automation
-smart-cli -i --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
 ```
 
 ## Usage
@@ -63,19 +64,50 @@ smart-cli [OPTIONS]  # Starts interactive mode if no query provided
 - `--interactive` (`-i`): Interactive mode - continue conversation after each response
 - `--help`: Show help message
 
+### Core Functionalities
+
+**1. Direct Question Answering**
+- Get explanations, definitions, and conceptual answers
+- Mathematical computations and problem solving
+- General knowledge queries and research assistance
+
+**2. Code Generation & Execution**
+- Automatic Python code generation from natural language
+- Safe code execution with built-in timeouts
+- Real-time syntax highlighting and formatted output
+
+**3. Data Analysis & File Operations**
+- CSV, JSON, and Excel file analysis
+- Statistical insights and data visualization
+- File management and processing tasks
+
+**4. Interactive Conversations**
+- Multi-turn conversations with context retention
+- Dynamic context gathering when more information is needed
+- Seamless switching between different query types
+
+**5. MCP Server Integration**
+- Web automation with Playwright (screenshots, form filling, navigation)
+- File system operations and directory management
+- External API integrations and tool connectivity
+- Custom server support for specialized tasks
+
 ### 🆕 Interactive Mode
 
 Start continuous conversations with your AI assistant:
 
 ```bash
 # Start interactive mode
-smart-cli -i
+smart-cli --interactive
 
 # Interactive mode with web automation
-smart-cli -i --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+
+# Interactive mode with file system access
+smart-cli --interactive --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
 
 # Interactive mode with multiple MCP servers
-smart-cli -i \
+smart-cli --interactive \
   --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server" \
   --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
 
@@ -101,9 +133,65 @@ smart-cli "search for latest Python news" \
   --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-brave-search"
 
 # Multiple servers at once
-smart-cli -i \
+smart-cli --interactive \
   --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server" \
   --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
+```
+
+### How to Use Each Functionality
+
+**Direct Question Answering**
+```bash
+# Get explanations and definitions
+smart-cli "What is machine learning and how does it work?"
+smart-cli "Explain the difference between Python lists and tuples"
+smart-cli "What are the benefits of using Docker containers?"
+
+# Mathematical computations
+smart-cli "Calculate the compound interest for $1000 at 5% for 3 years"
+smart-cli "Solve the quadratic equation x^2 + 5x + 6 = 0"
+smart-cli "Find the area of a circle with radius 7"
+```
+
+**Code Generation & Execution**
+```bash
+# Generate utility scripts
+smart-cli "create a password generator with 12 characters"
+smart-cli "generate a QR code for https://github.com"
+smart-cli "create a file organizer that sorts files by extension"
+
+# Data processing
+smart-cli "read sales.csv and calculate total revenue"
+smart-cli "create a bar chart from data.json"
+smart-cli "convert excel file to csv format"
+```
+
+**File Operations with MCP**
+```bash
+# File system operations
+smart-cli --interactive --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
+# Then: > "create a backup of all .py files in current directory"
+# Then: > "find all files modified in the last 7 days"
+# Then: > "analyze disk usage by file type"
+```
+
+**Web Automation**
+```bash
+# Browser automation
+smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+# Then: > "take screenshots of google.com, github.com, and stackoverflow.com"
+# Then: > "navigate to amazon.com and search for 'python books'"
+# Then: > "fill out a contact form with test data"
+```
+
+**Interactive Data Analysis**
+```bash
+# Start interactive session for data work
+smart-cli --interactive --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
+# Then: > "load customer_data.csv and show me the first 10 rows"
+# Then: > "calculate average age by department"
+# Then: > "create a visualization of sales trends"
+# Then: > "save the analysis results to a report"
 ```
 
 ### Model Selection
@@ -143,8 +231,8 @@ smart-cli "create automated tests for login functionality" \
 
 ### 🆕 Interactive Conversations
 ```bash
-# Start interactive session
-smart-cli -i --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+# Start interactive session  
+smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
 
 # Example conversation:
 > take a screenshot of google.com
@@ -314,7 +402,7 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="your-github-token"
 ### Batch Operations with Interactive Mode
 ```bash
 # Start interactive session for multiple tasks
-smart-cli -i --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
+smart-cli --interactive --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server"
 
 # Then perform multiple operations:
 > take screenshots of google.com, github.com, and stackoverflow.com
@@ -326,7 +414,7 @@ smart-cli -i --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server
 
 ### Combining Code Generation with Web Automation
 ```bash
-smart-cli -i \
+smart-cli --interactive \
   --mcp-server "stdio:npx,-y,@executeautomation/playwright-mcp-server" \
   --mcp-server "stdio:npx,-y,@modelcontextprotocol/server-filesystem,."
 
@@ -392,7 +480,7 @@ loadenv  # or your custom environment loading command
 pip install -e .
 
 # Start with explicit interactive flag
-smart-cli -i
+smart-cli --interactive
 ```
 
 ## Contributing
