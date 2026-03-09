@@ -625,3 +625,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Web automation by [Playwright MCP Server](https://github.com/executeautomation/mcp-playwright)
 - UI components by [Rich](https://github.com/Textualize/rich)
 - MCP ecosystem by [Model Context Protocol](https://modelcontextprotocol.io/)
+---
+> **This is Demo. contains no confidential data/IP**
